@@ -2,6 +2,8 @@ import React,{Component} from 'react';
 import {ScrollView, View,Text,TouchableOpacity,Linking } from 'react-native';
 import axios from 'axios';
 
+import Header from '../components/Header';
+
 class NewsScreen extends Component{
 
   state={news:[]}
@@ -32,11 +34,14 @@ class NewsScreen extends Component{
 
   render(){
     return(
+      <View>
+        <Header />
       <ScrollView>
         <View>
         {this.renderNews()}
         </View>
       </ScrollView>
+      </View>
     )
   }
 }

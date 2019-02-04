@@ -1,9 +1,10 @@
 import React,{Component} from 'react';
-import {ScrollView,View,Text,Image,Button,TouchableOpacity,Alert} from 'react-native';
+import {ScrollView,View,Text,Image,TouchableOpacity,Alert} from 'react-native';
 import axios from 'axios';
 import SVGImage from 'react-native-svg-image';
 import Swipeout from 'react-native-swipeout';
-
+import {Button} from 'react-native-elements';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 class CoinScreen extends Component{
 
@@ -14,7 +15,7 @@ class CoinScreen extends Component{
     watchList:[],
     selectedItem:null,
     toggle:true,
-
+    activeColor:false
   }
 
   componentDidMount() {
@@ -28,7 +29,6 @@ class CoinScreen extends Component{
 
     renderWatchList = () => {
       return Object.keys(this.state.watchList).map((key) => {
-        console.log(this.state.watchList[key].price)
         const swipeSettings = {
           autoClose:true,
           onClose:(secId,rowId,direction) => {
@@ -62,22 +62,22 @@ class CoinScreen extends Component{
         return(
 
           <Swipeout key={this.state.watchList[key].id} {...swipeSettings} style={{backgroundColor: 'white'}} >
-          <View style={styles.coinStyle} >
-            <View style={{flexDirection: 'column'}}>
-              <SVGImage style={styles.imageStyle} source={{uri: this.state.watchList[key].iconUrl}} />
-              <Text style={{marginTop:15,marginRight:90}}>{this.state.watchList[key].symbol}</Text>
-            </View>
-            <View style={{marginRight: 105,marginTop:30}}>
-              <Text style={{fontSize: 15,fontWeight: 'bold'}}>${Math.round(this.state.watchList[key].price*10000)/10000}</Text>
-              <Text style={{paddingTop:15 }}>${this.state.watchList[key].marketCap.toLocaleString(navigator.language, { minimumFractionDigits: 0 })}</Text>
-              <View>
-              <Text
-              style={{color:'white',fontWeight:'bold',fontSize:20,marginTop:-60,marginLeft: 150,width:80,height:80,backgroundColor:this.state.watchList[key].change < 0 ? 'red' : 'green'}}>
-              %{this.state.watchList[key].change}
-              </Text>
+            <View key={this.state.cryptos[key].id} style={styles.coinStyle} >
+              <View style={{flexDirection: 'column'}}>
+                <SVGImage style={styles.imageStyle} source={{uri: this.state.cryptos[key].iconUrl}} />
+                <Text style={{marginTop:15,marginRight:90}}>{this.state.cryptos[key].symbol}</Text>
+              </View>
+              <View style={{marginRight: 105,marginTop:15}}>
+                <Text style={{fontSize: 15,fontWeight: 'bold'}}>${Math.round(this.state.cryptos[key].price*10000)/10000}</Text>
+                <Text style={{paddingTop:15 }}>${this.state.cryptos[key].marketCap.toLocaleString(navigator.language, { minimumFractionDigits: 0 })}</Text>
+                  <View style={{width:80,height:50,marginTop:-50,marginLeft:140,borderWidth: 2,borderRadius: 10,backgroundColor:this.state.cryptos[key].change < 0 ? 'red' : 'green'}}>
+                    <Text
+                    style={{marginTop:10,color:'white',fontWeight:'bold',fontSize:20}}>
+                    %{this.state.cryptos[key].change}
+                    </Text>
+                  </View>
               </View>
             </View>
-          </View>
           </Swipeout>
         )
       })
@@ -90,20 +90,25 @@ class CoinScreen extends Component{
   }
 
     addItem = (key) => {
-    this.setState({
-      watchList:[...this.state.watchList,this.state.cryptos[key]],
-      selectedItem:this.state.cryptos[key]
-      })
+      const {watchList} = this.state
+      const isOnTheList = watchList.includes(this.state.watchList[key])
+
+      if(isOnTheList){
+        return null;
+      }else{
+        this.setState({
+          watchList:[...this.state.watchList,this.state.cryptos[key]],
+          selectedItem:this.state.cryptos[key]
+        })
+      }
     }
 
     showWatchList = () => {
-      const {watchList} = this.state
-      this.setState({toggle:false})
+      this.setState({toggle:false,activeColor:true})
     }
 
     showAllCoins = () => {
-      const {cryptos} = this.state
-      this.setState({toggle:true})
+      this.setState({toggle:true,activeColor:false})
     }
 
 
@@ -112,37 +117,40 @@ class CoinScreen extends Component{
 
     return(
       <ScrollView>
-      <View>
-          <View style={{marginTop:45,flexDirection: 'row',justifyContent:'space-between',justifyContent: 'center'}}>
+      <View style={{backgroundColor: '#08457e'}}>
+          <View style={{marginTop:45,flexDirection: 'row',justifyContent: 'center'}}>
             <TouchableOpacity onPress={this.showWatchList}>
-              <Text style={{fontSize:15,marginRight: 15}}>watchList</Text>
+              <Text style={{borderWidth:1,backgroundColor: this.state.activeColor ? 'green' : 'gray',fontSize:25}}>watchList</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={this.showAllCoins}>
-              <Text style={{fontSize:15}}>All Coins</Text>
+              <Text style={{borderWidth:1,backgroundColor: this.state.activeColor ? 'gray' : 'green',fontSize:25}}>All Coins</Text>
             </TouchableOpacity>
           </View>
           {
             this.state.toggle ?
         <View>
           {Object.keys(this.state.cryptos).map((key,id) => (
-          <TouchableOpacity key={this.state.cryptos[key].id} onPress={() => this.addItem(key)}>
-            <View style={styles.coinStyle} >
+            <View key={this.state.cryptos[key].id} style={styles.coinStyle} >
               <View style={{flexDirection: 'column'}}>
                 <SVGImage style={styles.imageStyle} source={{uri: this.state.cryptos[key].iconUrl}} />
                 <Text style={{marginTop:15,marginRight:90}}>{this.state.cryptos[key].symbol}</Text>
               </View>
-              <View style={{marginRight: 105,marginTop:30}}>
+              <View style={{marginRight: 105,marginTop:15}}>
                 <Text style={{fontSize: 15,fontWeight: 'bold'}}>${Math.round(this.state.cryptos[key].price*10000)/10000}</Text>
                 <Text style={{paddingTop:15 }}>${this.state.cryptos[key].marketCap.toLocaleString(navigator.language, { minimumFractionDigits: 0 })}</Text>
-                <View>
-                <Text
-                style={{color:'white',fontWeight:'bold',fontSize:20,marginTop:-60,marginLeft: 150,width:80,height:80,backgroundColor:this.state.cryptos[key].change < 0 ? 'red' : 'green'}}>
-                %{this.state.cryptos[key].change}
-                </Text>
+                  <Icon
+                    onPress={() => this.addItem(key)}
+                    style={{marginLeft: 25,marginTop:15}}
+                    name="plus"
+                    size={20} />
+                  <View style={{alignItems: 'center',width:80,height:50,marginTop:-80,marginLeft:140,borderWidth: 2,borderRadius: 10,backgroundColor:this.state.cryptos[key].change < 0 ? 'red' : 'green'}}>
+                  <Text
+                  style={{marginTop:10,color:'white',fontWeight:'bold',fontSize:20}}>
+                  %{this.state.cryptos[key].change}
+                  </Text>
                 </View>
               </View>
             </View>
-          </TouchableOpacity>
           ))}
         </View> :(this.renderWatchList())
       }
@@ -159,10 +167,12 @@ const styles={
     justifyContent: 'space-between',
     padding:20,
     borderBottomWidth:0.2,
+    backgroundColor: '#08457e'
   },
   imageStyle:{
     width:35,
-    height:35
+    height:35,
+    marginTop:15
   }
 }
 
