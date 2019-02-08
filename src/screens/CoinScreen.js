@@ -1,5 +1,5 @@
 import React,{Component} from 'react';
-import {ScrollView,View,Text,Image,TouchableOpacity,Alert} from 'react-native';
+import {AsyncStorage,ScrollView,View,Text,Image,TouchableOpacity,Alert} from 'react-native';
 import axios from 'axios';
 import SVGImage from 'react-native-svg-image';
 import Swipeout from 'react-native-swipeout';
@@ -21,6 +21,7 @@ class CoinScreen extends Component{
   componentDidMount() {
   this.fetchCoinData()
     }
+
 
     fetchCoinData = async() => {
       const fetchCoin = await axios.get('https://api.coinranking.com/v1/public/coins')
@@ -58,22 +59,20 @@ class CoinScreen extends Component{
           rowId:this.state.watchList[key].id,
           sectionId:1
         }
-
         return(
-
           <Swipeout key={this.state.watchList[key].id} {...swipeSettings} style={{backgroundColor: 'white'}} >
-            <View key={this.state.cryptos[key].id} style={styles.coinStyle} >
+            <View key={this.state.watchList[key].id} style={styles.coinStyle} >
               <View style={{flexDirection: 'column'}}>
-                <SVGImage style={styles.imageStyle} source={{uri: this.state.cryptos[key].iconUrl}} />
-                <Text style={{marginTop:15,marginRight:90}}>{this.state.cryptos[key].symbol}</Text>
+                <SVGImage style={styles.imageStyle} source={{uri: this.state.watchList[key].iconUrl}} />
+                <Text style={{marginTop:15,marginRight:90}}>{this.state.watchList[key].symbol}</Text>
               </View>
               <View style={{marginRight: 105,marginTop:15}}>
-                <Text style={{fontSize: 15,fontWeight: 'bold'}}>${Math.round(this.state.cryptos[key].price*10000)/10000}</Text>
-                <Text style={{paddingTop:15 }}>${this.state.cryptos[key].marketCap.toLocaleString(navigator.language, { minimumFractionDigits: 0 })}</Text>
-                  <View style={{width:80,height:50,marginTop:-50,marginLeft:140,borderWidth: 2,borderRadius: 10,backgroundColor:this.state.cryptos[key].change < 0 ? 'red' : 'green'}}>
+                <Text style={{fontSize: 15,fontWeight: 'bold'}}>${Math.round(this.state.watchList[key].price*10000)/10000}</Text>
+                <Text style={{paddingTop:15 }}>${this.state.watchList[key].marketCap.toLocaleString(navigator.language, { minimumFractionDigits: 0 })}</Text>
+                  <View style={{width:80,height:50,marginTop:-50,marginLeft:140,borderWidth: 2,borderRadius: 10,backgroundColor:this.state.watchList[key].change < 0 ? 'red' : 'green'}}>
                     <Text
                     style={{marginTop:10,color:'white',fontWeight:'bold',fontSize:20}}>
-                    %{this.state.cryptos[key].change}
+                    %{this.state.watchList[key].change}
                     </Text>
                   </View>
               </View>
@@ -87,18 +86,29 @@ class CoinScreen extends Component{
     const watchList = this.state.watchList;
     watchList.splice(key,1);
     this.setState({watchList})
+    AsyncStorage.setItem("watchList",JSON.stringify(watchList))
+
+  }
+
+  fetchItem = async () => {
+    await AsyncStorage.getItem("watchList").then((value) => {
+      this.setState({
+        watchList:JSON.parse(value)
+      });
+    }).done();
   }
 
     addItem = (key) => {
       const {watchList} = this.state
       const isOnTheList = watchList.includes(this.state.watchList[key])
-
       if(isOnTheList){
         return null;
       }else{
         this.setState({
           watchList:[...this.state.watchList,this.state.cryptos[key]],
           selectedItem:this.state.cryptos[key]
+        }, () => {
+          AsyncStorage.setItem("watchList",JSON.stringify(this.state.watchList))
         })
       }
     }
@@ -114,6 +124,7 @@ class CoinScreen extends Component{
 
 
   render(){
+    console.log(this.state.watchList)
 
     return(
       <ScrollView>
